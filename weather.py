@@ -8,17 +8,16 @@ import RPi.GPIO as GPIO
 import datetime
 import os
 
-#imports modules for 16x2 character LCD
-import Adafruit_CharLCD as LCD
-
-''' uncomment when using OLED
-#imports modules for OLED display
+#imports modules for 128x64 OLED
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
-import Image
-import ImageDraw
-import ImageFont
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
+
 '''
+#imports modules for 16x2 character LCD
+import Adafruit_CharLCD as LCD
 
 #LCD SETUP
 # Character LCD pin configuration:
@@ -37,6 +36,26 @@ lcd_rows    = 2
 # Initialize the LCD using the pins above.
 lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, 
                            lcd_columns, lcd_rows, lcd_backlight)
+'''
+
+#OLED setup
+RST=24
+disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
+# Initialize library.
+disp.begin()
+# Get display width and height.
+width = disp.width
+height = disp.height
+# Create image buffer.
+# Make sure to create image with mode '1' for 1-bit color.
+image = Image.new('1', (width, height))
+# Load default font.
+font = ImageFont.load_default()
+# Alternatively load a TTF font.  Make sure the .ttf font file is in the same directory as this python script!
+# Some nice fonts to try: http://www.dafont.com/bitmap.php
+# font = ImageFont.truetype('Minecraftia.ttf', 8)
+# Create drawing object.
+draw = ImageDraw.Draw(image)
 
 #set paths to files
 working_dir="/home/pi/Documents/pi-weather-clock/"
@@ -45,6 +64,14 @@ weather_conditions_json="weatherconditions.json"
 conditions_api_file = working_dir + weather_conditions_json
 #forecast_api_file = working_dir + weather_forecast_json
 
+def LCD_ready():
+  disp.clear()
+  disp.display()
+
+def LCD_clear():
+  global draw
+  draw.rectangle((0,0,width,height), outline=0, fill=0)
+'''
 def LCD_disable():
  lcd.clear()
  lcd.set_backlight(0)
@@ -59,6 +86,7 @@ def LCD_enable():
 def LCD_ready():
  lcd.clear()
  lcd.home()
+'''
 
 #JSON parsing
 def read_json_conditions():
@@ -83,9 +111,8 @@ def read_json_conditions():
 
 #initialize everything
 print("initializing...")
-LCD_enable()
 LCD_ready()
-lcd.set_cursor(0,1)
+LCD_clear()
 lcd.message("Checking weather")
 read_json_conditions()
 weather_aging_refresh=60 #how many S to re-read the weather JSON file. JSON file pulled in a configurable interval in get-weather-json.py
