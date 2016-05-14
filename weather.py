@@ -107,7 +107,7 @@ def main():
   if weather_aging > weather_aging_refresh:
    read_json_conditions()
    LCD_clear()
-   LCD_text(weather,x,0)
+   LCD_text(weather,0,0)
    LCD_text(weatherdisplay,0,60)
    LCD_write()
    break
