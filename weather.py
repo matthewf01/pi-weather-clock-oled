@@ -7,59 +7,66 @@ import math
 import RPi.GPIO as GPIO
 import datetime
 import os
+from decimal import getcontext, Decimal
+#set decimal precision used for printing temperature
+getcontext().prec = 2
 
-#imports modules for 16x2 character LCD
-import Adafruit_CharLCD as LCD
-
-''' uncomment when using OLED
-#imports modules for OLED display
-import Adafruit_GPIO.SPI as SPI
+#imports modules for 128x64 OLED
+#import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
-import Image
-import ImageDraw
-import ImageFont
-'''
-
-#LCD SETUP
-# Character LCD pin configuration:
-lcd_rs        = 27
-lcd_en        = 22
-lcd_d4        = 25
-lcd_d5        = 24
-lcd_d6        = 23
-lcd_d7        = 18
-lcd_backlight = 4
-
-# Define LCD column and row size for 16x2 LCD.
-lcd_columns = 16
-lcd_rows    = 2
-
-# Initialize the LCD using the pins above.
-lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, 
-                           lcd_columns, lcd_rows, lcd_backlight)
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
+#OLED setup
+RST=24
+disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
+# Initialize library.
+disp.begin()
+# Get display width and height.
+width = disp.width
+height = disp.height
+# Create image buffer.
+# Make sure to create image with mode '1' for 1-bit color.
+image = Image.new('1', (width, height))
+x=width-width
+y-height-height
+# Load a font font.
+fontsize=16
+font = ImageFont.truetype('fonts/Roboto-Thin.ttf', fontsize)
+#font = ImageFont.load_default()
+# Create drawing object.
+draw = ImageDraw.Draw(image)
 
 #set paths to files
-working_dir="/home/pi/Documents/pi-weather-clock/"
+working_dir="/home/pi/pi-weather-clock-oled/"
 weather_conditions_json="weatherconditions.json"
 #weather_forecast_json="weatherforecast.json"
 conditions_api_file = working_dir + weather_conditions_json
 #forecast_api_file = working_dir + weather_forecast_json
 
-def LCD_disable():
- lcd.clear()
- lcd.set_backlight(0)
- lcd.enable_display(False)
- 
-def LCD_enable():
- lcd.enable_display(True)
- lcd.clear()
- lcd.home()
- lcd.set_backlight(1)
+def LCD_clear():
+  disp.clear()
+  draw.rectangle((0,0,width,height), outline=0, fill=0)
 
-def LCD_ready():
- lcd.clear()
- lcd.home()
+def LCD_write():
+  disp.image(image)
+  disp.display()
 
+def LCD_text(message,x,y):
+  draw.text((x,y),message,font=font,fill=255)
+  
+def LCD_time():
+	draw.rectangle((0,0,width,height), outline=0, fill=0)
+	fontsize=22
+	font = ImageFont.truetype('fonts/Roboto-Thin.ttf', fontsize)
+	draw.text((0,0),(datetime.datetime.now().strftime('%I:%M %p')),font=font,fill=255)
+	fontsize=17
+	font = ImageFont.truetype('fonts/Roboto-Thin.ttf', fontsize)
+	draw.text((3,21),(datetime.datetime.now().strftime('%a, %b %d')),font=font,fill=255)
+	LCD_text(tempf+(chr(176))+"F",93,10)
+	LCD_text(weather,0,45)
+	LCD_write()
+	
 #JSON parsing
 def read_json_conditions():
   json_cond_text = open(conditions_api_file)
@@ -68,9 +75,12 @@ def read_json_conditions():
   global tempf
   global weatherdisplay
   weather = parsed_cond_json['current_observation']['weather']
-  tempf = str(parsed_cond_json['current_observation']['temp_f'])
+  temp_raw = str(parsed_cond_json['current_observation']['temp_f'])
+  tempf = str(Decimal(tempf_raw)/Decimal(1))
   obs_time=str(parsed_cond_json['current_observation']['observation_time'])
-  weatherdisplay=("{}, {}{}F".format(weather,tempf,chr(223)))
+  weatherdisplay=("{}{}F, {}".format(tempf,chr(176),weather))
+  #for character LCD:
+  #weatherdisplay=("{}, {}{}F".format(weather,tempf,chr(223)))
   timenow = time.strftime("%X")
   datenow = time.strftime("%x")
   print("{} {} READ FILE: {}".format(timenow,datenow,conditions_api_file))
@@ -83,10 +93,10 @@ def read_json_conditions():
 
 #initialize everything
 print("initializing...")
-LCD_enable()
-LCD_ready()
-lcd.set_cursor(0,1)
-lcd.message("Checking weather")
+LCD_clear()
+LCD_write()
+LCD_text("Checking weather...",0,20)
+LCD_write()
 read_json_conditions()
 weather_aging_refresh=60 #how many S to re-read the weather JSON file. JSON file pulled in a configurable interval in get-weather-json.py
 weather_aging=weather_aging_refresh -2
@@ -98,14 +108,13 @@ def main():
   weather_aging=weather_aging + 1
   if weather_aging > weather_aging_refresh:
    read_json_conditions()
-   LCD_ready()
-   lcd.set_cursor(0,1)
-   lcd.message(weatherdisplay)
-   break
+   LCD_clear()
+   LCD_text(weather,x,0)
+   LCD_text(weatherdisplay,0,60)
+   LCD_write()
+ break
   else:
-   #LCD_ready()
-   lcd.set_cursor(0,0)
-   lcd.message((datetime.datetime.now().strftime('%b %d  %I:%M %p')))
+   LCD_time()
    time.sleep(1)
 
 

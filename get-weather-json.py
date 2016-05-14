@@ -8,7 +8,7 @@ import time
 weather_city="Suwanee"
 weather_state="GA"
 weather_conditions_url = "http://api.wunderground.com/api/c11da38a0c7b7fc3/conditions/q/{}/{}.json".format(weather_state,weather_city)
-weather_working_dir = "/home/pi/Documents/pi-weather-clock/weatherconditions.json"
+weather_working_dir = "/home/pi/pi-weather-clock-oled/weatherconditions.json"
 
 def urlget():
    while (True):
