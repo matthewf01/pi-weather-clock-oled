@@ -112,7 +112,7 @@ def main():
    LCD_text(weather,x,0)
    LCD_text(weatherdisplay,0,60)
    LCD_write()
- break
+   break
   else:
    LCD_time()
    time.sleep(1)
