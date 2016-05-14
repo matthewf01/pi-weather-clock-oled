@@ -28,8 +28,6 @@ height = disp.height
 # Create image buffer.
 # Make sure to create image with mode '1' for 1-bit color.
 image = Image.new('1', (width, height))
-x=width-width
-y-height-height
 # Load a font font.
 fontsize=16
 font = ImageFont.truetype('fonts/Roboto-Thin.ttf', fontsize)
