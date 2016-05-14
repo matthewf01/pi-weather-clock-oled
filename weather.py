@@ -74,7 +74,7 @@ def read_json_conditions():
   global weatherdisplay
   weather = parsed_cond_json['current_observation']['weather']
   temp_raw = str(parsed_cond_json['current_observation']['temp_f'])
-  tempf = str(Decimal(tempf_raw)/Decimal(1))
+  tempf = str(Decimal(temp_raw)/Decimal(1))
   obs_time=str(parsed_cond_json['current_observation']['observation_time'])
   weatherdisplay=("{}{}F, {}".format(tempf,chr(176),weather))
   #for character LCD:
