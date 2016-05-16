@@ -7,6 +7,7 @@ import math
 import RPi.GPIO as GPIO
 import datetime
 import os
+import urllib
 from decimal import getcontext, Decimal
 #set decimal precision used for printing temperature
 getcontext().prec = 2
@@ -76,6 +77,10 @@ def read_json_conditions():
   temp_raw = str(parsed_cond_json['current_observation']['temp_f'])
   tempf = str(Decimal(temp_raw)/Decimal(1))
   obs_time=str(parsed_cond_json['current_observation']['observation_time'])
+  icon=str(parsed_cond_json['current_observation']['icon'])
+  #customizing my icon set, more at http://www.wunderground.com/weather/api/d/docs?d=resources/icon-sets
+  icon_url=str("http://icons.wxug.com/i/c/j/"+icon+".gif")
+  urllib.urlretrieve (icon_url, working_dir+"weather_current.gif")
   weatherdisplay=("{}{}F, {}".format(tempf,chr(176),weather))
   #for character LCD:
   #weatherdisplay=("{}, {}{}F".format(weather,tempf,chr(223)))
